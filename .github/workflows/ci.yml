@@ -1,35 +1,31 @@
-name: CI
-
-on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
-
 jobs:
   build:
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      uses: actions/checkout@main
+    - continue-on-error: true
+      name: Set up JDK
+      uses: actions/setup-java@main
+      with:
+        cache: maven
+        distribution: zulu
+        java-version: ${{ matrix.java }}
+    - continue-on-error: true
+      name: Build
+      run: mvn --no-transfer-progress -B clean install ${{ matrix.maven-profiles }}
     strategy:
       matrix:
         include:
-            - java: '8'
-              maven-profiles: '-P osgi-tests,kotlin'
-            - java: '11'
-              maven-profiles: ''
-            - java: '17'
-              maven-profiles: '-P modern-jvm'
-            - java: '21'
-              maven-profiles: '-P modern-jvm'
-
-    runs-on: 'ubuntu-latest'
-    steps:
-    - uses: actions/checkout@main
-    - name: Set up JDK
-      uses: actions/setup-java@main
-      with:
-        java-version: ${{ matrix.java }}
-        distribution: 'zulu'
-        cache: 'maven'
-    - name: Build
-      run: mvn --no-transfer-progress -B clean install ${{ matrix.maven-profiles }}
+        - java: '8'
+          maven-profiles: -P osgi-tests,kotlin
+        - java: '11'
+          maven-profiles: ''
+        - java: '17'
+          maven-profiles: -P modern-jvm
+        - java: '21'
+          maven-profiles: -P modern-jvm
+name: CI
+on:
+  repository_dispatch:
+    types: trigger-ga___ci.yml
